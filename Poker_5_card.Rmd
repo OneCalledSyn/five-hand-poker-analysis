@@ -1,0 +1,73 @@
+---
+title: "Poker"
+author: "Jay Shapiro"
+date: "5/20/2020"
+output: html_document
+---
+
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, include = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+library(broom)
+
+poker_test <- read.table(file = 'C:/Users/OneCalledSyn/Desktop/poker_test.csv', header = FALSE, sep = ",")
+
+#head(poker_test)
+colnames(poker_test) <- c("Suit_1", "Rank_1", "Suit_2", "Rank_2", "Suit_3", "Rank_3", "Suit_4", "Rank_4", "Suit_5", "Rank_5", "Class")
+
+poker_training <- read.table(file = 'C:/Users/OneCalledSyn/Desktop/poker_training.csv', header = FALSE, sep = ",")
+
+#head(poker_training)
+colnames(poker_training) <- c("Suit_1", "Rank_1", "Suit_2", "Rank_2", "Suit_3", "Rank_3", "Suit_4", "Rank_4", "Suit_5", "Rank_5", "Class")
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=}
+
+#Does same thing as group_by summarise
+#occurrences <- table(unlist(poker_training$Class))
+#occurrences
+
+#summary(poker_training)
+
+nCr <- function(n,r) {
+  factorial(n) / (factorial(n - r) * factorial(r))
+}
+
+sample_space <- nCr(52, 5)
+
+poker_training_stats <- poker_training %>%
+  group_by(Class) %>%
+  summarise(exp_occurrences = n()) %>%
+  mutate(exp_prob =  (exp_occurrences) / nrow(poker_training), exp_percent = exp_prob * 100, theor_prob = 0, theor_percent = 0)
+
+poker_training_stats$theor_prob <- as.numeric(c(".501177", ".422569", ".047539", ".021128", ".003925",".001965", ".001441", ".000240", ".0000139", ".00000154"))
+
+poker_training_stats$theor_percent <- 100 * poker_training_stats$theor_prob
+
+poker_training_stats <- poker_training_stats %>%
+  mutate(theor_occurrences = nrow(poker_training) * theor_prob)
+
+chi_tbl <- table(poker_training_stats$exp_occurrences, poker_training_stats$theor_occurrences)
+
+chisq.test(chi_tbl)
+
+#poker_training_stats$exp_prob
+
+observed <- c(5, 25005)
+expected <- c(0.00000154, 0.99999846)
+
+royal_chi <- chisq.test(x = observed, p = expected)
+royal_chi
+
+
+```
+
+```{r echo = FALSE, warning = FALSE, message = FALSE, include = FALSE}
+
+
+  
+
+```
