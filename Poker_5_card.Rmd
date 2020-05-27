@@ -1,8 +1,11 @@
 ---
-title: "Poker"
+title: "Examining Five Card Poker"
 author: "Jay Shapiro"
 date: "5/20/2020"
-output: html_document
+output: 
+  html_document:
+    theme: cerulean
+  pdf_document: default
 ---
 
 
@@ -10,7 +13,6 @@ output: html_document
 library(tidyverse)
 library(ggplot2)
 library(plotly)
-library(broom)
 
 poker_test <- read.table(file = 'C:/Users/OneCalledSyn/Desktop/poker_test.csv', header = FALSE, sep = ",")
 
@@ -24,7 +26,16 @@ colnames(poker_training) <- c("Suit_1", "Rank_1", "Suit_2", "Rank_2", "Suit_3", 
 
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, include=}
+<br>
+
+**Poker Probability**<br>
+
+Imagine pulling five cards without replacement from a standard deck of 52 playing cards. The size of the sample space $\Omega$ for such an action is given by $\binom{52}{5}$, or '52 choose 5', such that $\Omega$ = {$s_{1}, s_{2}, \dots, s_{2598960}$} contains each unique combination of five cards available from the deck. Each combination of five cards can be classified into one of the following categorical outcomes, in order of increasing rarity: high card, one pair, two pair, three of a kind, straight, flush, full house, four of a kind, straight flush, or royal flush.<br> 
+
+Suppose there was a dataset containing many iterations of hands of five card poker. Would it be possible to statistically evaluate the results to detect if the sample data follow the same distribution as the underlying population data? The ability to do so could be useful in auditing online poker sites for example, to ensure that the cards dealt to the players were truly dealt randomly. For example, some sites have been previously accused of artificially inflating the occurrences of the rarer hands such as quads and straight flushes.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include= FALSE}
 
 #Does same thing as group_by summarise
 #occurrences <- table(unlist(poker_training$Class))
@@ -41,7 +52,10 @@ sample_space <- nCr(52, 5)
 poker_training_stats <- poker_training %>%
   group_by(Class) %>%
   summarise(exp_occurrences = n()) %>%
-  mutate(exp_prob =  (exp_occurrences) / nrow(poker_training), exp_percent = exp_prob * 100, theor_prob = 0, theor_percent = 0)
+  mutate(exp_prob =  (exp_occurrences) / nrow(poker_training), 
+         exp_percent = exp_prob * 100, 
+         theor_prob = 0, 
+         theor_percent = 0)
 
 poker_training_stats$theor_prob <- as.numeric(c(".501177", ".422569", ".047539", ".021128", ".003925",".001965", ".001441", ".000240", ".0000139", ".00000154"))
 
@@ -55,19 +69,34 @@ chi_tbl <- table(poker_training_stats$exp_occurrences, poker_training_stats$theo
 chisq.test(chi_tbl)
 
 #poker_training_stats$exp_prob
+#Check each class with a chi squared test
+poker_training_stats <- poker_training_stats %>%
+  mutate(exp_not_occurrences = nrow(poker_training) - exp_occurrences)
 
-observed <- c(5, 25005)
-expected <- c(0.00000154, 0.99999846)
 
-royal_chi <- chisq.test(x = observed, p = expected)
+royal_observed <- c(5, 25005)
+royal_expected <- c(0.00000154, 0.99999846)
+
+royal_chi <- chisq.test(x = royal_observed, p = royal_expected)
 royal_chi
+
+str8flush_observed <- c()
 
 
 ```
 
-```{r echo = FALSE, warning = FALSE, message = FALSE, include = FALSE}
+```{r Tester Chunk, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 
+observed <- data.frame(cbind(poker_training_stats$exp_occurrences, poker_training_stats$exp_not_occurrences))
+expected <- data.frame(cbind(poker_training_stats$theor_prob, (1 - poker_training_stats$theor_prob)))
 
+str(observed)
+str(expected)
+
+for (i in 1:nrow(poker_training_stats)) {
+  category <- chisq.test(x = c(observed$X1[i],observed$X2[i]), p = c(expected$X1[i], expected$X2[i]))
+  print(category)
+}
   
 
 ```
