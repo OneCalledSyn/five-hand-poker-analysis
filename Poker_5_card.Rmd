@@ -32,7 +32,9 @@ colnames(poker_training) <- c("Suit_1", "Rank_1", "Suit_2", "Rank_2", "Suit_3", 
 
 Imagine pulling five cards without replacement from a standard deck of 52 playing cards. The size of the sample space $\Omega$ for such an action is given by $\binom{52}{5}$, or '52 choose 5', such that $\Omega$ = {$s_{1}, s_{2}, \dots, s_{2598960}$} contains each unique combination of five cards available from the deck. Each combination of five cards can be classified into one of the following categorical outcomes, in order of increasing rarity: high card, one pair, two pair, three of a kind, straight, flush, full house, four of a kind, straight flush, or royal flush.<br> 
 
-Suppose there was a dataset containing many iterations of hands of five card poker. Would it be possible to statistically evaluate the results to detect if the sample data follow the same distribution as the underlying population data? The ability to do so could be useful in auditing online poker sites for example, to ensure that the cards dealt to the players were truly dealt randomly. For example, some sites have been previously accused of artificially inflating the occurrences of the rarer hands such as quads and straight flushes.
+Suppose there was a dataset containing many iterations of hands of five card poker. Would it be possible to statistically evaluate the results to detect if the sample data follow the same distribution as the underlying population data? The ability to do so could be useful in auditing online poker sites for example, to ensure that the cards dealt to the players were truly dealt randomly. For example, some sites have been previously accused of artificially inflating the occurrences of the rarer hands such as quads and straight flushes.<br>
+
+
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, include= FALSE}
@@ -63,6 +65,8 @@ poker_training_stats$theor_percent <- 100 * poker_training_stats$theor_prob
 
 poker_training_stats <- poker_training_stats %>%
   mutate(theor_occurrences = nrow(poker_training) * theor_prob)
+
+head(poker_training_stats)
 
 chi_tbl <- table(poker_training_stats$exp_occurrences, poker_training_stats$theor_occurrences)
 
